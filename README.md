@@ -12,7 +12,7 @@
 Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buoy into an instant traversal tool. Complete with outfit-colored smoke clouds, spark bursts, spatial whoosh audio, and zero-allocation multiplayer synchronization so your modded friends see and hear every blink.
 
 <p align="center">
-[![ani.webp](https://i.postimg.cc/c4M7M2yY/ani.webp)](https://postimg.cc/pprnP0dX)
+<img src="https://i.postimg.cc/c4M7M2yY/ani.webp" alt="EnderBuoy animation">
 </p>
 
 ---
