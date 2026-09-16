@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://repository-images.githubusercontent.com/1373564541/fd82cd06-b9d6-48ee-9a4c-3b90831abf40" alt="EnderBuoy banner">
+</p>
+
 # 🔮 EnderBuoy
 
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -6,6 +10,10 @@
 **Enderpearl-style buoy teleportation for Big Walk.** Turn on a buoy, throw it across the island, and instantly blink to where it lands.
 
 Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buoy into an instant traversal tool. Complete with outfit-colored smoke clouds, spark bursts, spatial whoosh audio, and zero-allocation multiplayer synchronization so your modded friends see and hear every blink.
+
+<p align="center">
+[![ani.webp](https://i.postimg.cc/c4M7M2yY/ani.webp)](https://postimg.cc/pprnP0dX)
+</p>
 
 ---
 
