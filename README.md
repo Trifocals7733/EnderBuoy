@@ -5,7 +5,7 @@
 
 **Enderpearl-style buoy teleportation for Big Walk.** Turn on a buoy, throw it across the island, and instantly blink to where it lands.
 
-Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buoy into an instant traversal tool—complete with outfit-colored smoke clouds, firework spark bursts, spatial whoosh audio, and zero-allocation multiplayer synchronization so your modded friends see and hear every blink.
+Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buoy into an instant traversal tool. Complete with outfit-colored smoke clouds, spark bursts, spatial whoosh audio, and zero-allocation multiplayer synchronization so your modded friends see and hear every blink.
 
 ---
 
@@ -14,12 +14,12 @@ Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buo
 - **Throw to Teleport**: Toss any lit buoy (standard white or red pedestal bulb) to teleport immediately upon impact.
 - **Smart & Safe Landings**: Automatic slope-alignment, wall-rebound clearance, and downward ground sweeps ensure you never spawn inside rocks or fall into geometry.
 - **Outfit-Matching VFX**:
-  - Billowing smoke clouds (lingering for 3.0 seconds) tinted directly to your character's shirt/torso color.
-  - Outward bursts of high-speed flare & firework sparks dynamically keyed to your player's outfit palette and highlights.
+  - Billowing smoke clouds (lingering for 3 seconds) tinted directly to your character's shirt/torso color.
+  - Outward bursts of high-speed flare & sparks dynamically keyed to your player's outfit palette and highlights.
 - **3D Spatial Audio**: Plays atmospheric throw whoosh sounds at both departure and arrival points.
-- **Multiplayer Sync for Modded Friends**: When other players in your lobby have EnderBuoy installed, they will see your personalized smoke/sparks and hear your 3D teleport sounds whenever you blink—and you will see and hear theirs!
+- **Multiplayer Sync for Modded Friends**: When other players in your lobby have EnderBuoy installed, they will see your personalized smoke/sparks and hear your 3D teleport sounds whenever you blink, and you will see and hear theirs!
 - **Lit-Only Toggle (`RequireLit`)**: Buoys only teleport you when their lamp is turned **ON**. Turn the buoy off to throw it around as normal lighting or pass it to friends.
-- **Performance Optimized**: Zero garbage collection (0 B allocated/frame) during active gameplay. Uses Big Walk's pre-cached player registry.
+- **Performance Optimized**: Zero garbage collection during active gameplay. Uses Big Walk's pre-cached player registry.
 - **In-Game Mod Settings**: Fully integrated with [ModSettingsMenu](https://thunderstore.io/c/big-walk/p/Ice_Box_Studio_BigWalk/ModSettingsMenu/) (F7 toggle hotkey, distance limits, audio/visual toggles).
 
 ---
@@ -109,7 +109,7 @@ The build target automatically copies the compiled `EnderBuoy.dll` straight into
 
 ## 🙏 Special thanks
 
-Special thanks to **dexter**.
+Special thanks to **Dexter**.
 
 ---
 
