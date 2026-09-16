@@ -54,7 +54,7 @@ public class Plugin : BasePlugin
         ModSettingsRegistry.Register(PLUGIN_GUID, new ModSettingsModOptions
         {
             Name = "EnderBuoy",
-            Description = "Throw a buoy, teleport to where it lands.",
+            Description = "Throw a buoy, teleport to where it lands.\nSpecial thanks to dexter.",
             Version = PLUGIN_VERSION
         });
 

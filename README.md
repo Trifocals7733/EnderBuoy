@@ -107,6 +107,12 @@ The build target automatically copies the compiled `EnderBuoy.dll` straight into
 
 ---
 
+## 🙏 Special thanks
+
+Special thanks to **dexter**.
+
+---
+
 ## 📄 License
 
 MIT License — feel free to modify, fork, or redistribute.
