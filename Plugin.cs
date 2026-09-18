@@ -13,7 +13,7 @@ public class Plugin : BasePlugin
 {
     public const string PLUGIN_GUID = "walker.enderbuoy";
     public const string PLUGIN_NAME = "EnderBuoy";
-    public const string PLUGIN_VERSION = "1.0.0";
+    public const string PLUGIN_VERSION = "1.1.0";
 
     internal static new ManualLogSource Log;
 
@@ -34,6 +34,9 @@ public class Plugin : BasePlugin
             new ConfigDescription("Longest allowed teleport in meters, measured from throw point to landing. Longer throws do nothing.",
                 new AcceptableValueRange<float>(10f, 200f),
                 ModSettingsTags.Entry(order: 30, sliderStep: 5d)));
+        var autoRetrieve = Config.Bind("Blink", "AutoRetrieve", false,
+            new ConfigDescription("Automatically pick the buoy back up into your hands upon landing for continuous chain teleports.",
+                null, ModSettingsTags.Entry(order: 35)));
         var hiddenConfig = new ConfigFile(Config.ConfigFilePath, true);
         var timeout = hiddenConfig.Bind("Blink", "Timeout", 10f,
             "Safety fuse: seconds a tracked throw may stay airborne before giving up. Covers lost props; normal throws land long before this. Giving up means no teleport.");
@@ -45,8 +48,11 @@ public class Plugin : BasePlugin
                 null, ModSettingsTags.Section("Input", order: 30), ModSettingsTags.Entry(order: 10)));
 
         var playSound = Config.Bind("Effects", "PlaySound", true,
-            new ConfigDescription("Play a random throw whoosh sound upon teleporting.",
+            new ConfigDescription("Play throw whoosh sounds at departure and arrival upon teleporting.",
                 null, ModSettingsTags.Section("Effects", order: 25), ModSettingsTags.Entry(order: 10)));
+        var flightTrail = Config.Bind("Effects", "FlightTrail", true,
+            new ConfigDescription("Emit a luminous, sparkling trail behind the thrown buoy matching your outfit colors while in flight.",
+                null, ModSettingsTags.Entry(order: 15)));
         var spawnSmoke = Config.Bind("Effects", "SpawnSmoke", true,
             new ConfigDescription("Spawn flare smoke clouds at departure and arrival locations.",
                 null, ModSettingsTags.Entry(order: 20)));
@@ -58,7 +64,7 @@ public class Plugin : BasePlugin
             Version = PLUGIN_VERSION
         });
 
-        Blink.Bind(enabled, blink, requireLit, maxDist, timeout, diagnostics, toggleKey, playSound, spawnSmoke);
+        Blink.Bind(enabled, blink, requireLit, maxDist, timeout, diagnostics, toggleKey, playSound, spawnSmoke, autoRetrieve, flightTrail);
         new HarmonyLib.Harmony(PLUGIN_GUID).PatchAll();
         AddComponent<Blink>(); // BasePlugin.AddComponent also injects the type
 

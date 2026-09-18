@@ -6,7 +6,7 @@ namespace EnderBuoy;
 
 public class Blink : MonoBehaviour
 {
-    static ConfigEntry<bool> _enabled, _blink, _requireLit, _diagnostics, _playSound, _spawnSmoke;
+    static ConfigEntry<bool> _enabled, _blink, _requireLit, _diagnostics, _playSound, _spawnSmoke, _autoRetrieve, _flightTrail;
     static ConfigEntry<float> _maxDist, _timeout;
     static ConfigEntry<KeyCode> _key;
 
@@ -19,7 +19,9 @@ public class Blink : MonoBehaviour
         ConfigEntry<bool> diagnostics,
         ConfigEntry<KeyCode> key,
         ConfigEntry<bool> playSound,
-        ConfigEntry<bool> spawnSmoke)
+        ConfigEntry<bool> spawnSmoke,
+        ConfigEntry<bool> autoRetrieve,
+        ConfigEntry<bool> flightTrail)
     {
         _enabled = enabled;
         _blink = blink;
@@ -30,6 +32,8 @@ public class Blink : MonoBehaviour
         _key = key;
         _playSound = playSound;
         _spawnSmoke = spawnSmoke;
+        _autoRetrieve = autoRetrieve;
+        _flightTrail = flightTrail;
     }
 
     public static bool Armed => _enabled != null && _blink != null && _enabled.Value && _blink.Value;
@@ -46,11 +50,15 @@ public class Blink : MonoBehaviour
     static float _lastSafeY = float.MinValue;
     static float _nextDiag;
 
-    // Smoke template
+    // Smoke and trail templates
     static GameObject _smokeTemplate;
+    static GameObject _flightTrailObj;
+    static ParticleSystem _flightTrailPs;
 
     // Multiplayer friend teleport tracking
     static readonly System.Collections.Generic.Dictionary<int, Vector3> _lastPlayerPositions = new();
+    static readonly System.Collections.Generic.List<Prop> _cachedBuoys = new();
+    static float _nextBuoyScanTime = -100f;
 
     const float KillMargin = 30f;
     const float MinThrowSqrImpulse = 4.0f; // 2 m/s minimum throw force magnitude
@@ -228,6 +236,7 @@ public class Blink : MonoBehaviour
 
             _tracking = true;
             Plugin.Log.LogInfo($"EnderBuoy: tracking start release={_releasePoint} safeY={_lastSafeY}");
+            AttachFlightTrail(_trackedTransform, holder);
         }
         catch (System.Exception e)
         {
@@ -311,6 +320,27 @@ public class Blink : MonoBehaviour
             Plugin.Log.LogInfo($"EnderBuoy: tracking pos={pos} sp={speed:F2} dist={distXZ:F1} m");
         }
 
+        // Emit sparkling flight trail in player outfit colors
+        if (_flightTrail != null && _flightTrail.Value && _flightTrailPs != null)
+        {
+            var palette = GetPlayerPalette(LocalPlayer());
+            Vector3 drift = -vel * 0.12f + UnityEngine.Random.insideUnitSphere * 0.25f;
+            for (int i = 0; i < 2; i++)
+            {
+                Vector3 p = pos + UnityEngine.Random.insideUnitSphere * 0.08f;
+                float sz = UnityEngine.Random.Range(0.12f, 0.24f);
+                float life = UnityEngine.Random.Range(0.45f, 0.75f);
+                Color32 col = (i == 0) ? palette.SparkGlow : palette.SparkAccent;
+                _flightTrailPs.Emit(p, drift, sz, life, col);
+            }
+            if (Time.frameCount % 3 == 0)
+            {
+                Vector3 p = pos + UnityEngine.Random.insideUnitSphere * 0.05f;
+                Vector3 smokeDrift = -vel * 0.08f + Vector3.up * 0.1f;
+                _flightTrailPs.Emit(p, smokeDrift, 0.55f, 0.75f, palette.Smoke);
+            }
+        }
+
         // Secondary prediction: SphereCast along velocity vector for next physics step
         if (speed > 0.5f)
         {
@@ -342,19 +372,43 @@ public class Blink : MonoBehaviour
         _prevSpeed = speed;
     }
 
-    static bool IsNearAnyBuoy(Vector3 pos, float maxDist)
+    static void RefreshBuoyCache()
     {
+        if (Time.time < _nextBuoyScanTime) return;
+        _nextBuoyScanTime = Time.time + 5.0f; // refresh every 5 seconds
+        _cachedBuoys.Clear();
         try
         {
             var props = Prop.allProps;
-            if (props != null && props.Count > 0)
+            if (props != null)
             {
                 for (int i = 0; i < props.Count; i++)
                 {
                     var p = props[i];
                     if (p != null && p.gameObject != null && IsBuoyName(p.gameObject.name))
                     {
-                        if (Vector3.Distance(pos, p.transform.position) <= maxDist)
+                        _cachedBuoys.Add(p);
+                    }
+                }
+            }
+        }
+        catch { }
+    }
+
+    static bool IsNearAnyBuoy(Vector3 pos, float maxDist)
+    {
+        RefreshBuoyCache();
+        try
+        {
+            if (_cachedBuoys.Count > 0)
+            {
+                float maxDistSqr = maxDist * maxDist;
+                for (int i = 0; i < _cachedBuoys.Count; i++)
+                {
+                    var p = _cachedBuoys[i];
+                    if (p != null && p.gameObject != null)
+                    {
+                        if ((pos - p.transform.position).sqrMagnitude <= maxDistSqr)
                             return true;
                     }
                 }
@@ -578,14 +632,26 @@ public class Blink : MonoBehaviour
             // Robust landing position preventing feet embedding or spawning inside geometry
             Vector3 target = CalculateLandingPosition(contactPoint, normal, _trackedProp, buoyVel);
 
-            // 1. Audio: play random throwSound cue at destination
+            // 1. Audio: play random throwSound cue at departure and destination
+            PlayTeleportSound(fromPos, player);
             PlayTeleportSound(target, player);
 
             // 2. VFX: Smoke puffs that linger for 3s at departure and arrival locations
             SpawnSmoke(fromPos + Vector3.up * 0.5f, player);
             SpawnSmoke(target + Vector3.up * 0.5f, player);
 
-            // 3. Movement write
+            // 3. Host RPCPuff replication for unmodded clients across the lobby
+            if (Mirror.NetworkServer.active)
+            {
+                try
+                {
+                    int torsoId = player.looks != null ? player.looks.GetLookId(PlayerLooks.LookPart.Torso) : 0;
+                    player.playerNetworking?.RPCPuff(torsoId, PlayerLooks.LookPart.Torso);
+                }
+                catch { }
+            }
+
+            // 4. Movement write
             var rb = player.rb;
             if (rb != null)
             {
@@ -612,6 +678,26 @@ public class Blink : MonoBehaviour
             float dist = Vector3.Distance(fromPos, target);
             Plugin.Log.LogInfo($"EnderBuoy: teleported ({source}) {fromPos} -> {target} (dist {dist:F1} m)");
             try { _lastPlayerPositions[player.GetInstanceID()] = target; } catch { }
+
+            // 5. AutoRetrieve: pick buoy back up into hands upon landing
+            if (_autoRetrieve != null && _autoRetrieve.Value && _trackedProp != null)
+            {
+                try
+                {
+                    player.actions?.ActionPickUpProp(_trackedProp, target);
+                    if (_diagnostics != null && _diagnostics.Value)
+                    {
+                        Plugin.Log.LogInfo("EnderBuoy: AutoRetrieve picked up buoy into hands.");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    if (_diagnostics != null && _diagnostics.Value)
+                    {
+                        Plugin.Log.LogInfo($"EnderBuoy: AutoRetrieve failed: {ex.Message}");
+                    }
+                }
+            }
         }
         catch (System.Exception e)
         {
@@ -619,6 +705,7 @@ public class Blink : MonoBehaviour
         }
         finally
         {
+            DetachFlightTrail();
             _trackedProp = null;
             _trackedTransform = null;
             _trackedRb = null;
@@ -829,9 +916,57 @@ public class Blink : MonoBehaviour
     }
 
 
+    static void AttachFlightTrail(Transform buoyTransform, PlayerCharacter player)
+    {
+        if (_flightTrail == null || !_flightTrail.Value) return;
+        try
+        {
+            var template = GetSmokeTemplate(player);
+            if (template == null) return;
+
+            _flightTrailObj = UnityEngine.Object.Instantiate(template, buoyTransform.position, Quaternion.identity);
+            if (_flightTrailObj != null)
+            {
+                _flightTrailObj.SetActive(true);
+                _flightTrailPs = _flightTrailObj.GetComponentInChildren<ParticleSystem>(true);
+                if (_flightTrailPs == null)
+                {
+                    _flightTrailPs = _flightTrailObj.GetComponent<ParticleSystem>();
+                }
+                if (_flightTrailPs != null)
+                {
+                    _flightTrailPs.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            if (_diagnostics != null && _diagnostics.Value)
+                Plugin.Log.LogInfo($"EnderBuoy: error attaching flight trail: {ex.Message}");
+        }
+    }
+
+    static void DetachFlightTrail()
+    {
+        try
+        {
+            if (_flightTrailObj != null)
+            {
+                UnityEngine.Object.Destroy(_flightTrailObj, 1.2f);
+            }
+        }
+        catch { }
+        finally
+        {
+            _flightTrailObj = null;
+            _flightTrailPs = null;
+        }
+    }
+
     static void Cancel(string reason)
     {
         Plugin.Log.LogInfo($"EnderBuoy: cancelled ({reason}).");
+        DetachFlightTrail();
         _tracking = false;
         _trackedProp = null;
         _trackedTransform = null;

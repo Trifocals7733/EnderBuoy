@@ -20,15 +20,18 @@ Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buo
 ## ✨ Features
 
 - **Throw to Teleport**: Toss any lit buoy (standard white or red pedestal bulb) to teleport immediately upon impact.
+- **AutoRetrieve (Optional)**: Automatically snaps the thrown buoy right back into your hands upon arrival for instant, continuous chain-teleporting across the island (configurable setting in menu, off by default).
+- **Sparkling Flight Trail**: Emits a luminous, shimmering comet tail of sparkling embers and trailing wisps dynamically tinted to your outfit's palette while the buoy is airborne.
 - **Smart & Safe Landings**: Automatic slope-alignment, wall-rebound clearance, and downward ground sweeps ensure you never spawn inside rocks or fall into geometry.
 - **Outfit-Matching VFX**:
   - Billowing smoke clouds (lingering for 3 seconds) tinted directly to your character's shirt/torso color.
   - Outward bursts of high-speed flare & sparks dynamically keyed to your player's outfit palette and highlights.
+  - Native `RPCPuff` broadcast when hosting so even unmodded vanilla clients see your poof cloud!
 - **3D Spatial Audio**: Plays atmospheric throw whoosh sounds at both departure and arrival points.
 - **Multiplayer Sync for Modded Friends**: When other players in your lobby have EnderBuoy installed, they will see your personalized smoke/sparks and hear your 3D teleport sounds whenever you blink, and you will see and hear theirs!
 - **Lit-Only Toggle (`RequireLit`)**: Buoys only teleport you when their lamp is turned **ON**. Turn the buoy off to throw it around as normal lighting or pass it to friends.
-- **Performance Optimized**: Zero garbage collection during active gameplay. Uses Big Walk's pre-cached player registry.
-- **In-Game Mod Settings**: Fully integrated with [ModSettingsMenu](https://thunderstore.io/c/big-walk/p/Ice_Box_Studio_BigWalk/ModSettingsMenu/) (F7 toggle hotkey, distance limits, audio/visual toggles).
+- **Performance Optimized**: Zero garbage collection during active gameplay. Uses Big Walk's pre-cached player registry and periodic buoy caching.
+- **In-Game Mod Settings**: Fully integrated with [ModSettingsMenu](https://thunderstore.io/c/big-walk/p/Ice_Box_Studio_BigWalk/ModSettingsMenu/) (F7 toggle hotkey, distance limits, audio/visual toggles, AutoRetrieve, FlightTrail).
 
 ---
 
@@ -37,9 +40,11 @@ Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buo
 | State | Lamp Turned OFF | Lamp Turned ON |
 |---|---|---|
 | **Throw Action** | Normal physics toss. Buoy bounces and rolls normally. | **Ender blink active!** Player teleports to point of first solid impact. |
+| **In Flight** | Normal gravity arc. | Luminous sparkling trail matching your outfit colors. |
 | **Visual Effects** | None. | Dual departure + arrival smoke clouds & spark bursts matching player clothing. |
 | **Audio** | Normal buoy throw sounds. | 3D spatial whoosh at takeoff and landing. |
-| **Friends' View** | Normal throw. | Friends with the mod see your custom-colored smoke and hear the whoosh. |
+| **AutoRetrieve** | Stays on the ground. | Snaps back into hands upon landing when enabled in menu. |
+| **Friends' View** | Normal throw. | Friends with the mod see your custom-colored smoke and hear the whoosh. Vanilla clients see the host poof cloud. |
 
 ---
 
@@ -75,12 +80,14 @@ Configurable via **Mod Settings** in the pause or main menu (or in `BepInEx/conf
 | `BlinkEnabled` | `true` | Enables/disables teleportation on throw. Can be toggled on-the-fly via hotkey. |
 | `RequireLit` | `true` | When true, only lit buoys teleport you. Unlit buoys behave normally. |
 | `MaxDistance` | `60.0` | Maximum allowed teleport range in meters (10m to 200m slider). Throws that travel farther will not teleport. |
+| `AutoRetrieve` | `false` | Automatically snaps the buoy back into your hands upon landing for rapid chain blinking. |
 | `Diagnostics` | `false` | Enables verbose tracking and physics logs in `LogOutput.log`. |
 
 ### Effects
 | Setting | Default | What it does |
 |---|---|---|
 | `PlaySound` | `true` | Plays 3D spatial throw sound effects at departure and arrival coordinates. |
+| `FlightTrail` | `true` | Emits a luminous sparkling trail behind the buoy in flight matching your outfit colors. |
 | `SpawnSmoke` | `true` | Spawns outfit-colored smoke puffs and spark bursts at departure and arrival. |
 
 ### Input
