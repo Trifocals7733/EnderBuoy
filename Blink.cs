@@ -59,6 +59,7 @@ public class Blink : MonoBehaviour
     static readonly System.Collections.Generic.Dictionary<int, Vector3> _lastPlayerPositions = new();
     static readonly System.Collections.Generic.List<Prop> _cachedBuoys = new();
     static float _nextBuoyScanTime = -100f;
+    static float _pendingArrivalPuffTime = -1f;
 
     const float KillMargin = 30f;
     const float MinThrowSqrImpulse = 4.0f; // 2 m/s minimum throw force magnitude
@@ -528,6 +529,26 @@ public class Blink : MonoBehaviour
             Cancel("mod disabled mid-flight");
         }
 
+        if (_pendingArrivalPuffTime > 0f && Time.time >= _pendingArrivalPuffTime)
+        {
+            _pendingArrivalPuffTime = -1f;
+            if (Mirror.NetworkServer.active)
+            {
+                try
+                {
+                    var lp = LocalPlayer();
+                    if (lp != null && lp.playerNetworking != null && lp.looks != null)
+                    {
+                        int arrColor1 = lp.looks.GetRandomLookId();
+                        int arrColor2 = lp.looks.GetRandomLookId();
+                        lp.playerNetworking.RPCPuff(arrColor1, PlayerLooks.LookPart.Torso);
+                        lp.playerNetworking.RPCPuff(arrColor2, PlayerLooks.LookPart.Legs);
+                    }
+                }
+                catch { }
+            }
+        }
+
         CheckRemoteTeleports();
     }
 
@@ -640,13 +661,16 @@ public class Blink : MonoBehaviour
             SpawnSmoke(fromPos + Vector3.up * 0.5f, player);
             SpawnSmoke(target + Vector3.up * 0.5f, player);
 
-            // 3. Host RPCPuff replication for unmodded clients across the lobby
+            // 3. Host RPCPuff replication for unmodded vanilla clients (Departure DoublePuff, random colors)
             if (Mirror.NetworkServer.active)
             {
                 try
                 {
-                    int torsoId = player.looks != null ? player.looks.GetLookId(PlayerLooks.LookPart.Torso) : 0;
-                    player.playerNetworking?.RPCPuff(torsoId, PlayerLooks.LookPart.Torso);
+                    var looks = player.looks;
+                    int color1 = looks != null ? looks.GetRandomLookId() : 0;
+                    int color2 = looks != null ? looks.GetRandomLookId() : 0;
+                    player.playerNetworking?.RPCPuff(color1, PlayerLooks.LookPart.Torso);
+                    player.playerNetworking?.RPCPuff(color2, PlayerLooks.LookPart.Legs);
                 }
                 catch { }
             }
@@ -669,6 +693,12 @@ public class Blink : MonoBehaviour
             }
 
             player.transform.position = target;
+
+            // Trigger arrival DoublePuff for vanilla clients once position sync is delivered
+            if (Mirror.NetworkServer.active)
+            {
+                _pendingArrivalPuffTime = Time.time + 0.08f;
+            }
 
             if (player.mover != null)
             {
@@ -966,6 +996,7 @@ public class Blink : MonoBehaviour
     static void Cancel(string reason)
     {
         Plugin.Log.LogInfo($"EnderBuoy: cancelled ({reason}).");
+        _pendingArrivalPuffTime = -1f;
         DetachFlightTrail();
         _tracking = false;
         _trackedProp = null;
