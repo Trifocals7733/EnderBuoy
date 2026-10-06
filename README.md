@@ -31,7 +31,7 @@ Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buo
 - **Multiplayer Sync for Modded Friends**: When other players in your lobby have EnderBuoy installed, they will see your personalized smoke/sparks and hear your 3D teleport sounds whenever you blink, and you will see and hear theirs!
 - **Lit-Only Toggle (`RequireLit`)**: Buoys only teleport you when their lamp is turned **ON**. Turn the buoy off to throw it around as normal lighting or pass it to friends.
 - **Performance Optimized**: Zero garbage collection during active gameplay. Uses Big Walk's pre-cached player registry and periodic buoy caching.
-- **In-Game Mod Settings**: Fully integrated with [ModSettingsMenu](https://thunderstore.io/c/big-walk/p/Ice_Box_Studio_BigWalk/ModSettingsMenu/) (F7 toggle hotkey, distance limits, audio/visual toggles, AutoRetrieve, FlightTrail).
+- **In-Game Mod Settings**: Settings appear in any settings-menu mod you have installed ([ModSettingsMenu](https://thunderstore.io/c/big-walk/p/Ice_Box_Studio_BigWalk/ModSettingsMenu/), [cfgMenu](https://thunderstore.io/c/big-walk/p/gogogadgetjustice/cfgMenu/), …) — F7 toggle hotkey, distance limits, audio/visual toggles, AutoRetrieve, FlightTrail. Nothing extra is required for EnderBuoy itself.
 
 ---
 
@@ -51,7 +51,11 @@ Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buo
 ## 📦 Requirements
 
 - **Big Walk** ([Steam](https://store.steampowered.com/app/1478500/Big_Walk/)) with **[BepInEx 6 (IL2CPP)](https://builds.bepinex.dev/projects/bepinex_be)** installed
-- [**ModSettingsMenu**](https://thunderstore.io/c/big-walk/p/Ice_Box_Studio_BigWalk/ModSettingsMenu/) ≥ 1.1.0 (for in-game settings UI)
+- No other mod is required. A settings menu ([ModSettingsMenu](https://thunderstore.io/c/big-walk/p/Ice_Box_Studio_BigWalk/ModSettingsMenu/), [cfgMenu](https://thunderstore.io/c/big-walk/p/gogogadgetjustice/cfgMenu/), …) is optional — without one, edit `BepInEx/config/walker.enderbuoy.cfg`.
+
+> **Heads-up for Big Walk 1.6:** ModSettingsMenu 1.1.2 itself no longer builds its panel on 1.6 —
+> it looks up native menu rows by name and the game renamed them. That is an MSM bug, not an EnderBuoy
+> one: EnderBuoy loads and works either way.
 
 ---
 
@@ -67,7 +71,7 @@ Buoys in Big Walk are bright, bouncy, and throwable. EnderBuoy turns any lit buo
 
 ## ⚙️ Settings
 
-Configurable via **Mod Settings** in the pause or main menu (or in `BepInEx/config/walker.enderbuoy.cfg`):
+Configurable in game with any settings-menu mod you have installed, or by editing `BepInEx/config/walker.enderbuoy.cfg`:
 
 ### General
 | Setting | Default | What it does |
@@ -119,6 +123,19 @@ The build target automatically copies the compiled `EnderBuoy.dll` straight into
 - **Safe Repositioning**: Feeds coordinates into the game's internal `player.grease.Teleport`, clearing falling states, resetting rigidbody velocities, and updating local mover kernals without rubberbanding.
 - **Visual & Audio Extraction**: Dynamically clones particle systems from existing scene emitters, reading the local and remote players' `PlayerLooks.lookSet` to colorize smoke particles and flare spark fragments to match their shirts and hats.
 - **Zero-Allocation Peer Tracking**: Leverages `PlayerCharacter.allPlayerCharacters` to track remote character displacements with zero heap allocations per frame, allowing seamless multiplayer effects without network RPC overhead.
+
+---
+
+## 📝 Changelog
+
+### v1.1.1
+- **Big Walk 1.6 support, no settings-mod dependency**: dropped the `ModSettingsMenu` reference and the hard `BepInDependency`, so a settings menu that breaks after a game update can no longer stop EnderBuoy from loading. Settings appear in whichever settings menu you have installed and `walker.enderbuoy.cfg` stays hand-editable.
+
+### v1.1.0
+- AutoRetrieve, sparkling flight trail, departure & arrival DoublePuff for vanilla clients, dual spatial audio, buoy caching.
+
+### v1.0.0
+- Initial release: throw a lit buoy to blink to where it lands.
 
 ---
 

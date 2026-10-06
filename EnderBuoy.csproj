@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>EnderBuoy</AssemblyName>
     <Product>Enderpearl-style buoy teleport</Product>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RootNamespace>EnderBuoy</RootNamespace>
@@ -32,10 +32,9 @@
     <Reference Include="UnityEngine.AudioModule"><HintPath>$(InteropDir)\UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.ParticleSystemModule"><HintPath>$(InteropDir)\UnityEngine.ParticleSystemModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="AudioSystem"><HintPath>$(InteropDir)\AudioSystem.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="ModSettingsMenu"><HintPath>$(PluginsDir)\ModSettingsMenu\ModSettingsMenu.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 
-  <Target Name="CopyToPlugins" AfterTargets="Build">
+  <Target Name="CopyToPlugins" AfterTargets="Build" Condition="'$(DoCopy)' != 'false'">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginsDir)\EnderBuoy" />
   </Target>
 
